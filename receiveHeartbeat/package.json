@@ -1,0 +1,7 @@
+{
+  "name": "receive-heartbeat",
+  "version": "1.0.0",
+  "dependencies": {
+    "@google-cloud/firestore": "^7.3.0"
+  }
+}
