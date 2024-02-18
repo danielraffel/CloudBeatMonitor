@@ -87,9 +87,10 @@ gcloud functions deploy checkVMHeartbeatAndRestart \
 
 Make sure you have the `gcloud` CLI installed and configured to use your Google Cloud project.
 
-## Note
+## Notes
 - Ensure that Google Cloud Functions and Firestore APIs are enabled in your Google Cloud project.
 - CloudBeatMonitor is best used on non-critical micro instances and not recommended for critical production environments.
+- The stability of the monitored VM is now dependent on the reliability of multiple other services: cloud functions, google scheduler, firebase. 🤕 What could go wrong? 🫠
 
 ## Conclusion
 With the `CloudBeatMonitor` project, you can maintain the uptime of your VM, reduce downtime, and ensure that your services remain accessible. This project is particularly useful in scenarios where direct network access to the VM might be restricted due to it being on a Tailscale network.
