@@ -1,0 +1,8 @@
+{
+  "name": "vm-monitor-restart",
+  "version": "1.0.0",
+  "dependencies": {
+    "@google-cloud/firestore": "^7.3.0",
+    "googleapis": "^71.0.0"
+  }
+}
