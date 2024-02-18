@@ -1,7 +1,7 @@
-# README for tailscale-monitor-restart
+# README for CloudBeatMonitor
 
 ## Summary
-The `tailscale-monitor-restart` project contains two Google Cloud Functions that work together to monitor and maintain the health of a virtual machine (VM) running in a Tailscale network. The functions leverage Google Cloud Firestore for tracking the VM's "heartbeat" and Google Cloud Compute Engine for restarting the VM if it becomes unresponsive.
+The `CloudBeatMonitor` project contains two Google Cloud Functions that work together to monitor and maintain the health of a virtual machine (VM) running in a Tailscale network. The functions leverage Google Cloud Firestore for tracking the VM's "heartbeat" and Google Cloud Compute Engine for restarting the VM if it becomes unresponsive.
 
 ## Description
 This project aims to ensure high availability of a VM by:
@@ -12,7 +12,7 @@ This project aims to ensure high availability of a VM by:
 The system consists of two separate Cloud Functions:
 
 - `receiveHeartbeat`: This function is called by a cron job running every minute on the VM. It records the current time as a "heartbeat" in a Firestore document.
-- `checkVMHeartbeatAndRestart`: Triggered by Google Cloud Scheduler every minute, this function checks the last heartbeat time. If the last heartbeat is older than 2 minutes, it initiates a restart of the VM through Google Cloud Compute Engine.
+- `checkVMHeartbeatAndRestart`: Triggered by Google Cloud Scheduler job every minute, this function checks the last heartbeat time. If the last heartbeat is older than 2 minutes, it initiates a restart of the VM through Google Cloud Compute Engine.
 
 ## Firebase Setup
 Create a [Firestore database](https://console.cloud.google.com/firestore/databases) within your Google Cloud project. Set up the following:
