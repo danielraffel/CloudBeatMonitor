@@ -32,7 +32,7 @@ Create a [Firestore database](https://console.cloud.google.com/firestore/databas
 2. In your VM's cron job, update the URL to point to the deployed `receiveHeartbeat` function.
 
 ## Creating the Cron Job on the VM
-Set up a cron job on your VM to send the heartbeat to receiveHeartbeat by adding the following line to your crontab - be certain to update a) the URL to contain the b) region for the receiveHeartbeat cloud function and c) Project ID d) YOUR_VM_ID
+Set up a cron job on your VM to send the heartbeat to receiveHeartbeat by adding the following line to your crontab - be certain to update the cloud function URL to contain a) your region for the receiveHeartbeat cloud function b) your Project ID c) YOUR_VM_ID
 
 ```
 * * * * * curl -X POST https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/receiveHeartbeat \
