@@ -89,7 +89,7 @@ Make sure you have the `gcloud` CLI installed and configured to use your Google 
 
 ## Note
 - Ensure that Google Cloud Functions and Firestore APIs are enabled in your Google Cloud project.
-- CloudBeatMonitor is tailored for micro instances and is not recommended for critical production environments.
+- CloudBeatMonitor is tailored for non-critical micro instances and is not recommended for critical production environments.
 
 ## Conclusion
-With the `tailscale-monitor-restart` project, you can maintain the uptime of your VM, reduce downtime, and ensure that your services remain accessible to your users. This project is particularly useful in scenarios where direct network access to the VM might be restricted due to it being on a Tailscale network.
+With the `CloudBeatMonitor` project, you can maintain the uptime of your VM, reduce downtime, and ensure that your services remain accessible. This project is particularly useful in scenarios where direct network access to the VM might be restricted due to it being on a Tailscale network.
