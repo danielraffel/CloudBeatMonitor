@@ -1,7 +1,7 @@
 # README for CloudBeatMonitor
 
 ## Summary
-The `CloudBeatMonitor` project contains two Google Cloud Functions that work together to monitor and maintain the health of a virtual machine (VM) running in a Tailscale network. The functions leverage Google Cloud Firestore for tracking the VM's "heartbeat" and Google Cloud Compute Engine for restarting the VM if it becomes unresponsive.
+The `CloudBeatMonitor` project contains two Google Cloud Functions that work together to monitor and maintain the health of a virtual machine (VM). It was created as a simple way to monitor a VM running in a private Tailscale network without using a proxy. The functions leverage Google Cloud Firestore for storing the VM's last "heartbeat" and Google Cloud Compute Engine for restarting the VM if it becomes unresponsive.
 
 ## Description
 This project aims to ensure high availability of a VM by:
@@ -89,7 +89,7 @@ Make sure you have the `gcloud` CLI installed and configured to use your Google 
 
 ## Note
 - Ensure that Google Cloud Functions and Firestore APIs are enabled in your Google Cloud project.
-- CloudBeatMonitor is tailored for non-critical micro instances and is not recommended for critical production environments.
+- CloudBeatMonitor is best used on non-critical micro instances and not recommended for critical production environments.
 
 ## Conclusion
 With the `CloudBeatMonitor` project, you can maintain the uptime of your VM, reduce downtime, and ensure that your services remain accessible. This project is particularly useful in scenarios where direct network access to the VM might be restricted due to it being on a Tailscale network.
