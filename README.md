@@ -16,11 +16,14 @@ The system consists of two separate Cloud Functions:
 
 ## Firebase Setup
 Create a [Firestore database](https://console.firebase.google.com/) and set up the following:
-- Go to the Firebase Console.
+- Go to the Firebase Console. Note: You will be creating two collections. One is named heartbeats and the other is named resuscitation.
 - Select your project.
 - Navigate to the Firestore Database section.
-- Start a collection named `heartbeats`.
+- Create your first collection named `heartbeats`.
 - Within this collection, add a document with the Document ID containing the name of your `YOUR_VM_ID` (eg a unique identifier for your VM which you will pass via curl in your cron job)
+- Add a field named `lastHeartbeat` with a `timestamp` value.
+- Create your second collection named `resuscitation`.
+- Within this collection, also add a document with the Document ID containing the name of your `YOUR_VM_ID` (eg a unique identifier for your VM which you will pass via curl in your cron job)
 - Add a field named `lastHeartbeat` with a `timestamp` value.
 
 ## What Needs to be Updated
