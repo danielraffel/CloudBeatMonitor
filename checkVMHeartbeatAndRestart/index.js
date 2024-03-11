@@ -10,15 +10,15 @@ exports.checkVMHeartbeatAndRestart = async (req, res) => {
 
   console.log(`Checking heartbeat for VM: ${vmId}`);
 
-  const docRef = firestore.collection('heartbeats').doc(vmId);
-  const doc = await docRef.get();
+  const heartbeatDocRef = firestore.collection('heartbeats').doc(vmId);
+  const heartbeatDoc = await heartbeatDocRef.get();
 
-  if (!doc.exists) {
+  if (!heartbeatDoc.exists) {
     console.error(`No heartbeat document found for VM: ${vmId}`);
     return res.status(404).send('VM heartbeat document does not exist');
   }
 
-  const {lastHeartbeat} = doc.data();
+  const {lastHeartbeat} = heartbeatDoc.data();
   const now = Firestore.Timestamp.now();
   const diff = now.seconds - lastHeartbeat.seconds;
   console.log(`Last heartbeat was ${diff} seconds ago for VM: ${vmId}`);
@@ -27,8 +27,20 @@ exports.checkVMHeartbeatAndRestart = async (req, res) => {
     console.log(`VM: ${vmId} is active.`);
     return res.status(200).send('VM is active.');
   } else {
-    console.warn(`VM: ${vmId} is unresponsive. Last heartbeat was ${diff} seconds ago. Initiating restart.`);
-    // VM is considered unresponsive; proceed with restart logic
+    const resuscitationDocRef = firestore.collection('resuscitation').doc(vmId);
+    const resuscitationDoc = await resuscitationDocRef.get();
+    let lastResuscitationTime = null;
+    if (resuscitationDoc.exists) {
+      lastResuscitationTime = resuscitationDoc.data().lastHeartbeat;
+    }
+
+    const timeSinceLastResuscitation = lastResuscitationTime ? now.seconds - lastResuscitationTime.seconds : Infinity;
+    if (timeSinceLastResuscitation <= 300) { // 5 minutes = 300 seconds
+      console.log(`VM: ${vmId} restart was attempted less than 5 minutes ago. Skipping restart.`);
+      return res.status(429).send('Restart skipped due to recent attempt');
+    }
+
+    // VM restart logic
     const auth = await google.auth.getClient({
       scopes: ['https://www.googleapis.com/auth/cloud-platform']
     });
@@ -65,7 +77,6 @@ exports.checkVMHeartbeatAndRestart = async (req, res) => {
       return res.status(404).send('No matching instance found');
     }
 
-    // Restart or start the VM
     const request = {
       project: projectId,
       zone: zoneToRestart,
@@ -86,7 +97,14 @@ exports.checkVMHeartbeatAndRestart = async (req, res) => {
       }
 
       console.log(`Operation completed on VM instance ${instanceToRestart}.`);
-      res.status(200).send(`Operation completed on ${instanceToRestart}`);
+      
+      // After successful restart, update the resuscitation timestamp
+      await resuscitationDocRef.set({
+        lastHeartbeat: Firestore.Timestamp.now()
+      }, {merge: true});
+
+      console.log(`Resuscitation timestamp updated for VM: ${vmId}.`);
+      res.status(200).send(`Operation completed and resuscitation timestamp updated for ${vmId}`);
     } catch (err) {
       console.error(`Error performing operation on VM: ${err}`);
       res.status(500).send('Failed to perform operation on VM');
