@@ -1,49 +1,47 @@
 # README for CloudBeatMonitor
 
 ## Summary
-The `CloudBeatMonitor` project contains two Google Cloud Functions that work together to monitor and maintain the health of a virtual machine (VM). It was created as a simple way to monitor a VM running in a private Tailscale network without using a proxy. The functions leverage Google Cloud Firestore for storing the VM's last "heartbeat" and Google Cloud Compute Engine for restarting the VM if it becomes unresponsive.
+The `CloudBeatMonitor` project includes two Google Cloud Functions designed to monitor and maintain the health of a virtual machine (VM) in a Tailscale network without needing a proxy. It utilizes Google Cloud Firestore to store the VM's last "heartbeat" and manages VM restarts through Google Cloud Compute Engine when unresponsiveness is detected.
 
 ## Description
-This project aims to ensure high availability of a VM by:
-
+This project ensures the high availability of a VM by:
 1. Regularly receiving a heartbeat from the VM.
-2. Checking the last received heartbeat and restarting the VM if it has not sent a heartbeat in over 2 minutes.
+2. Restarting the VM if it fails to send a heartbeat within a specified time frame, with safeguards to prevent frequent unnecessary restarts.
 
-The system consists of two separate Cloud Functions:
-
-- `receiveHeartbeat`: This function is called by a cron job running every minute on the VM. It records the current time as a "heartbeat" in a Firestore document.
-- `checkVMHeartbeatAndRestart`: Triggered by Google Cloud Scheduler job every minute, this function checks the last heartbeat time. If the last heartbeat is older than 2 minutes, it initiates a restart of the VM through Google Cloud Compute Engine.
+It consists of two Cloud Functions:
+- `receiveHeartbeat`: Called by the VM's cron job every minute to record a "heartbeat" timestamp in Firestore.
+- `checkVMHeartbeatAndRestart`: Triggered every minute by Google Cloud Scheduler to assess the VM's responsiveness based on its last heartbeat. If unresponsive, it restarts the VM, using a `resuscitation` document to track restart attempts and prevent looping.
 
 ## Firebase Setup
-Create a [Firestore database](https://console.firebase.google.com/) and set up the following:
-- Go to the Firebase Console. Note: You will be creating two collections. One is named heartbeats and the other is named resuscitation.
-- Select your project.
-- Navigate to the Firestore Database section.
-- Create your first collection named `heartbeats`.
-- Within this collection, add a document with the Document ID containing the name of your `YOUR_VM_ID` (eg a unique identifier for your VM which you will pass via curl in your cron job)
-- Add a field named `lastHeartbeat` with a `timestamp` value.
-- Create your second collection named `resuscitation`.
-- Within this collection, also add a document with the Document ID containing the name of your `YOUR_VM_ID` (eg a unique identifier for your VM which you will pass via curl in your cron job)
-- Add a field named `lastHeartbeat` with a `timestamp` value.
+To set up the necessary Firestore structure:
+1. **Create Collections in Firestore**: Navigate to Firestore in the [Firebase Console](https://console.firebase.google.com/) and create two collections: `heartbeats` and `resuscitation`. Note: Each will have the same data structure.
+2. **Heartbeats Collection**: In `heartbeats`, add a document for your VM using its unique identifier (`YOUR_VM_ID`) and include a `lastHeartbeat` field with a timestamp value.
+3. **Resuscitation Collection**: Similarly, in `resuscitation`, add a document with the same `YOUR_VM_ID` and a `lastHeartbeat` field. This document tracks the last restart attempt to prevent frequent restarts.
+     
+## Cloning the Repo and Updating Functions
+To deploy these functions, follow these steps:
 
-## What Needs to be Updated
-1. In the checkVMHeartbeatAndRestart Cloud Funcation navigate to `index.js`, update the placeholder data:
-   - `YOUR_VM_ID`: Replace with a unique identifier of your own creation for your VM, this something that should only be known to you.
-   - `YOUR_PROJECT_ID`: Replace with your Google Cloud project ID.
-   - `YOUR_STATIC_IP`: Replace with the static external IP address of your VM.
+1. Clone the repository to your local machine.
+```git clone https://github.com/danielraffel/CloudBeatMonitor.git```
+2. In the `checkVMHeartbeatAndRestart` function update the following placeholders in `index.js`:
+   - `YOUR_VM_ID`: Your VM's unique identifier (something unique that you create)
+   - `YOUR_PROJECT_ID`: Your Google Cloud project ID (something unique that Google assigns you)
+   - `YOUR_STATIC_IP`: The static IP address of your VM 
+   
+## Deploying Functions
+Make sure you have the `gcloud` CLI installed and configured to use your Google Cloud project. Then, deploy the functions to Google Cloud Functions using the `gcloud` command-line tool.
 
-2. In your VM's cron job, update the URL to point to the deployed `receiveHeartbeat` function.
+Navigate to the root of the folder and run `sudo sh deploy.sh`
 
-## Creating the Cron Job on the VM
-Set up a cron job on your VM to send the heartbeat to receiveHeartbeat by adding the following line to your crontab - be certain to update the cloud function URL to contain a) your region for the receiveHeartbeat cloud function b) your Project ID c) YOUR_VM_ID
-
+## Set Up the VM Cron Job
+To send heartbeats every minute from your VM SSH into it and add this to your cron (note: update the Cloud Function URL for `receiveHeartbeat` and `YOUR_VM_ID`):
 ```
 * * * * * curl -X POST https://us-central1-YOUR_PROJECT_ID.cloudfunctions.net/receiveHeartbeat \
 -H "Content-Type:application/json" --data '{"vmId":"YOUR_VM_ID"}'
 ```
 
-## Setting Up Google Cloud Scheduler
-To set up [Google Cloud Scheduler](https://cloud.google.com/scheduler):
+## Configuring Google Cloud Scheduler
+Set up [Google Cloud Scheduler](https://cloud.google.com/scheduler) to trigger `checkVMHeartbeatAndRestart` every minute. Specify the function's URL as the target and use POST as the HTTP method.
 - Go to the Google Cloud Console.
 - Navigate to "Cloud Scheduler".
 - Click "Create Job".
@@ -51,44 +49,6 @@ To set up [Google Cloud Scheduler](https://cloud.google.com/scheduler):
 - For the target, select "HTTP".
 - Enter the URL of the checkVMHeartbeatAndRestart function.
 - Set the HTTP method to POST.
-
-## Cloning the Repo and Deploying Functions
-To deploy these functions, follow these steps:
-
-1. Clone the repository to your local machine.
-2. Navigate to each function's directory.
-3. Deploy each function to Google Cloud Functions using the `gcloud` command-line tool.
-
-Here is an example script to consider running to deploy the Cloud Functions:
-
-```bash
-#!/bin/bash
-
-# MANUALLY UPDATE your project ID and other configuration details in checkVMHeartbeatAndRestart/index.js 
-# YOUR_PROJECT_ID="YOUR_PROJECT_ID"
-# YOUR_VM_ID="YOUR_VM_ID"
-# YOUR_STATIC_IP="YOUR_STATIC_IP"
-
-# Deploy the receiveHeartbeat function
-gcloud functions deploy receiveHeartbeat \
-  --runtime nodejs20 \
-  --trigger-http \
-  --allow-unauthenticated \
-  --source ./receiveHeartbeat \
-  --entry-point receiveHeartbeat \
-  --project $YOUR_PROJECT_ID
-
-# Deploy the checkVMHeartbeatAndRestart function
-gcloud functions deploy checkVMHeartbeatAndRestart \
-  --runtime nodejs20 \
-  --trigger-http \
-  --allow-unauthenticated \
-  --source ./checkVMHeartbeatAndRestart \
-  --entry-point checkVMHeartbeatAndRestart \
-  --project $YOUR_PROJECT_ID
-```
-
-Make sure you have the `gcloud` CLI installed and configured to use your Google Cloud project.
 
 ## Notes
 - Ensure that Google Cloud Functions and Firestore APIs are enabled in your Google Cloud project.
@@ -99,4 +59,4 @@ Make sure you have the `gcloud` CLI installed and configured to use your Google 
 - Make sure you created your Firebase db using the Firebase Console that's linked above (not via the GCP Firestore as that doesn't create the necessary IAM accounts / permissions - crazy but true)
 
 ## Conclusion
-With the `CloudBeatMonitor` project, you can maintain the uptime of your VM, reduce downtime, and ensure that your services remain accessible. This project is particularly useful in scenarios where direct network access to the VM might be restricted due to it being on a Tailscale network.
+`CloudBeatMonitor` enhances VM uptime, ensuring accessibility even in restricted network environments like Tailscale. By leveraging cloud-based monitoring and automatic restart mechanisms, it provides a simple yet effective solution for maintaining service availability.
