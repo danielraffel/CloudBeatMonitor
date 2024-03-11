@@ -15,7 +15,7 @@ The system consists of two separate Cloud Functions:
 - `checkVMHeartbeatAndRestart`: Triggered by Google Cloud Scheduler job every minute, this function checks the last heartbeat time. If the last heartbeat is older than 2 minutes, it initiates a restart of the VM through Google Cloud Compute Engine.
 
 ## Firebase Setup
-Create a [Firestore database](https://console.cloud.google.com/firestore/databases) within your Google Cloud project. Set up the following:
+Create a [Firestore database](https://console.firebase.google.com/) and set up the following:
 - Go to the Firebase Console.
 - Select your project.
 - Navigate to the Firestore Database section.
@@ -92,7 +92,8 @@ Make sure you have the `gcloud` CLI installed and configured to use your Google 
 - CloudBeatMonitor is best used on non-critical micro instances and not recommended for critical production environments.
 - The stability of the monitored VM is now dependent on the reliability of multiple other services: cloud functions, google scheduler, firebase. 🤕 What could go wrong? 🫠
 - Don't confuse the VIM (something unique that you create) with the projectID (something assigned to your project by Google)
-- Make sure that if you deploy 
+- Make sure that if you deploy using the bash script that you update your checkVMHeartbeatAndRestart/index.js file with your config settings
+- Make sure you created your Firebase db using the Firebase Console that's linked above (not via the GCP Firestore as that doesn't create the necessary IAM accounts / permissions - crazy but true)
 
 ## Conclusion
 With the `CloudBeatMonitor` project, you can maintain the uptime of your VM, reduce downtime, and ensure that your services remain accessible. This project is particularly useful in scenarios where direct network access to the VM might be restricted due to it being on a Tailscale network.
