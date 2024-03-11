@@ -61,10 +61,10 @@ Here is an example script to consider running to deploy the Cloud Functions:
 ```bash
 #!/bin/bash
 
-# Set your project ID and other configuration details
-YOUR_PROJECT_ID="YOUR_PROJECT_ID"
-YOUR_VM_ID="YOUR_VM_ID"
-YOUR_STATIC_IP="YOUR_STATIC_IP"
+# MANUALLY UPDATE your project ID and other configuration details in checkVMHeartbeatAndRestart/index.js 
+# YOUR_PROJECT_ID="YOUR_PROJECT_ID"
+# YOUR_VM_ID="YOUR_VM_ID"
+# YOUR_STATIC_IP="YOUR_STATIC_IP"
 
 # Deploy the receiveHeartbeat function
 gcloud functions deploy receiveHeartbeat \
@@ -91,6 +91,8 @@ Make sure you have the `gcloud` CLI installed and configured to use your Google 
 - Ensure that Google Cloud Functions and Firestore APIs are enabled in your Google Cloud project.
 - CloudBeatMonitor is best used on non-critical micro instances and not recommended for critical production environments.
 - The stability of the monitored VM is now dependent on the reliability of multiple other services: cloud functions, google scheduler, firebase. 🤕 What could go wrong? 🫠
+- Don't confuse the VIM (something unique that you create) with the projectID (something assigned to your project by Google)
+- Make sure that if you deploy 
 
 ## Conclusion
 With the `CloudBeatMonitor` project, you can maintain the uptime of your VM, reduce downtime, and ensure that your services remain accessible. This project is particularly useful in scenarios where direct network access to the VM might be restricted due to it being on a Tailscale network.
