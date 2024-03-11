@@ -10,7 +10,7 @@ This project ensures the high availability of a VM by:
 
 It consists of two Cloud Functions:
 - `receiveHeartbeat`: Called by the VM's cron job every minute to record a "heartbeat" timestamp in Firestore.
-- `checkVMHeartbeatAndRestart`: Triggered every minute by Google Cloud Scheduler to assess the VM's responsiveness based on its last heartbeat. If unresponsive, it restarts the VM, using a `resuscitation` document to track restart attempts and prevent looping.
+- `checkVMHeartbeatAndRestart`: Triggered every minute by Google Cloud Scheduler to assess the VM's responsiveness based on its last heartbeat. If unresponsive, it restarts the VM, using a `resuscitation` timestamp stored in Firestore to track restart attempts and prevent looping.
 
 ## Firebase Setup
 To set up the necessary Firestore structure:
